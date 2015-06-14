@@ -8,9 +8,10 @@ import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 /**
+ * Main app (launch) activity to display a list of Venues
+ * 
  * An activity representing a list of Items. This activity
  * has different presentations for handset and tablet-size devices. On
  * handsets, the activity presents a list of items, which when touched,
@@ -35,6 +36,8 @@ public class ItemListActivity extends ActionBarActivity
      * device.
      */
     private boolean mTwoPane;
+    
+    private ItemDetailFragment mItemDetailFragment = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +45,7 @@ public class ItemListActivity extends ActionBarActivity
         
         setContentView(R.layout.activity_item_list);
         
+        // Show the ActionBar with icon and title
         ActionBar actionBar = getSupportActionBar();        
         actionBar.setIcon(R.drawable.home);
         actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_TITLE);
@@ -59,13 +63,12 @@ public class ItemListActivity extends ActionBarActivity
                     .findFragmentById(R.id.item_list))
                     .setActivateOnItemClick(true);
         }
-        //ContentLoader.getData(this);
     }
     
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
     	if (mTwoPane) {
-    		// Inflate the menu items for use in the action bar
+    		// In two-pane mode, inflate the menu items for use in the action bar 
     		MenuInflater inflater = getMenuInflater();
     		inflater.inflate(R.menu.detail_actions, menu);
     	}
@@ -84,10 +87,10 @@ public class ItemListActivity extends ActionBarActivity
             // fragment transaction.
             Bundle arguments = new Bundle();
             arguments.putLong(ItemDetailFragment.ARG_ITEM_ID, id);
-            ItemDetailFragment fragment = new ItemDetailFragment();
-            fragment.setArguments(arguments);
+            mItemDetailFragment = new ItemDetailFragment();
+            mItemDetailFragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.item_detail_container, fragment)
+                    .replace(R.id.item_detail_container, mItemDetailFragment)
                     .commit();
 
         } else {
@@ -103,9 +106,9 @@ public class ItemListActivity extends ActionBarActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_share) {
-        	// TODO
-        	Toast.makeText(this, "TODO", Toast.LENGTH_SHORT).show();        		 
+        	if (mItemDetailFragment != null)
+        		mItemDetailFragment.shareVenue();
         }
         return super.onOptionsItemSelected(item);
-    }
+    }   
 }

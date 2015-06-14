@@ -19,13 +19,15 @@ import com.rogerang.sampleapp.content.Venue;
 import com.rogerang.sampleapp.content.VenueLoader;
 
 /**
- * A list fragment representing a list of Items. This fragment
+ * A list fragment representing a list of Venues. This fragment
  * also supports tablet devices by allowing list items to be given an
  * 'activated' state upon selection. This helps indicate which item is
  * currently being viewed in a {@link ItemDetailFragment}.
  * <p>
  * Activities containing this fragment MUST implement the {@link Callbacks}
  * interface.
+ * 
+ * Uses VenueLoader to load Venue data.
  */
 public class ItemListFragment extends ListFragment implements LoaderManager.LoaderCallbacks<List<Venue>> {
 
@@ -58,6 +60,11 @@ public class ItemListFragment extends ListFragment implements LoaderManager.Load
         public void onItemSelected(Long id);
     }
 
+    /**
+     * Custom list adapter for Venues.
+     * @author Roger
+     *
+     */
     public class VenueAdapter extends ArrayAdapter<Venue> {
     	private final LayoutInflater mInflater;
 
@@ -69,7 +76,7 @@ public class ItemListFragment extends ListFragment implements LoaderManager.Load
     	
     	public VenueAdapter(Context context, List<Venue> venueData) {
     		super(context, R.layout.venue_list_entry, venueData);
-    		 mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    		mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     	}
     	
 
@@ -79,7 +86,6 @@ public class ItemListFragment extends ListFragment implements LoaderManager.Load
                 addAll(data);
             }
         }
-
 
     	public View getView(int position, View convertView, ViewGroup parent) {
     		// Inflate a view template
@@ -118,11 +124,7 @@ public class ItemListFragment extends ListFragment implements LoaderManager.Load
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        // VenueAdapter adapter = new VenueAdapter(getActivity(), ContentLoader.ITEMS);
-        // ContentLoader.setBaseAdapter(adapter);
-        // setListAdapter(adapter);              
+        super.onCreate(savedInstanceState);        
     }
     
     @Override 
@@ -179,7 +181,6 @@ public class ItemListFragment extends ListFragment implements LoaderManager.Load
 
         // Notify the active callbacks interface (the activity, if the
         // fragment is attached to one) that an item has been selected.
-        //mCallbacks.onItemSelected(ContentLoader.ITEMS.get(position).getId());
         mCallbacks.onItemSelected(mAdapter.getItem(position).getId());
     }
 
@@ -216,8 +217,7 @@ public class ItemListFragment extends ListFragment implements LoaderManager.Load
     
     @Override 
     public Loader<List<Venue>> onCreateLoader(int id, Bundle args) {
-        // This is called when a new Loader needs to be created.  This
-        // sample only has one Loader with no arguments, so it is simple.
+        // This is called when a new Loader needs to be created.
         return new VenueLoader(getActivity());
     }
 

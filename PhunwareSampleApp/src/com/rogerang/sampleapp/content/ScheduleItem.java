@@ -7,7 +7,11 @@ import java.util.Date;
 
 import com.google.gson.annotations.SerializedName;
 
+/**
+ * Schedule data for a Venue event, populated from downloaded data.
+ */
 public class ScheduleItem {
+	// Accepted string format for start and end dates 
 	private static final SimpleDateFormat FORMATTER = new SimpleDateFormat(
 			"yyyy-MM-dd HH:mm:ss Z");
 

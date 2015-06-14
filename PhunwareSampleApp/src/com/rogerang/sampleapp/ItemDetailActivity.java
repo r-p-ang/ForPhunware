@@ -8,7 +8,6 @@ import android.support.v4.app.NavUtils;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 
 /**
@@ -16,25 +15,22 @@ import android.widget.Toast;
  * activity is only used on handset devices. On tablet-size devices,
  * item details are presented side-by-side with a list of items
  * in a {@link ItemListActivity}.
- * <p>
- * This activity is mostly just a 'shell' activity containing nothing
- * more than a {@link ItemDetailFragment}.
  */
 @SuppressWarnings("deprecation")
 public class ItemDetailActivity extends ActionBarActivity {
 
+	ItemDetailFragment mItemDetailFragment;
+	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_item_detail);
 
+        // Show the ActionBar with Up button, icon and title
         ActionBar actionBar = getSupportActionBar();
         actionBar.setIcon(R.drawable.home);
         actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_TITLE | ActionBar.DISPLAY_HOME_AS_UP);
-        
-        // Show the Up button in the action bar.
-        //getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        
+
         // savedInstanceState is non-null when there is fragment state
         // saved from previous configurations of this activity
         // (e.g. when rotating the screen from portrait to landscape).
@@ -50,10 +46,10 @@ public class ItemDetailActivity extends ActionBarActivity {
             Bundle arguments = new Bundle();
             arguments.putLong(ItemDetailFragment.ARG_ITEM_ID,
                     getIntent().getLongExtra(ItemDetailFragment.ARG_ITEM_ID, 0));
-            ItemDetailFragment fragment = new ItemDetailFragment();
-            fragment.setArguments(arguments);
+            mItemDetailFragment = new ItemDetailFragment();
+            mItemDetailFragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.item_detail_container, fragment)
+                    .add(R.id.item_detail_container, mItemDetailFragment)
                     .commit();
         }
     }
@@ -81,8 +77,7 @@ public class ItemDetailActivity extends ActionBarActivity {
             return true;
         } else {
         	 if (id == R.id.action_share) {
-        		 // TODO
-        		 Toast.makeText(this, "TODO", Toast.LENGTH_SHORT).show();        		 
+        		 mItemDetailFragment.shareVenue();     		 
         	 }
         }
         return super.onOptionsItemSelected(item);

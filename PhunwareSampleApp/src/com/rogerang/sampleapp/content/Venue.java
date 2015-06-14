@@ -4,6 +4,10 @@ import java.util.List;
 
 import com.google.gson.annotations.SerializedName;
 
+
+/**
+ * Venue data populated from downloaded data.
+ */
 public class Venue {
 
 	// Core fields
