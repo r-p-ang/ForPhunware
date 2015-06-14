@@ -1,19 +1,14 @@
 package com.rogerang.sampleapp;
 
-import android.R.color;
+
 import android.content.Intent;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
-
-
-
 
 /**
  * An activity representing a list of Items. This activity
@@ -64,7 +59,7 @@ public class ItemListActivity extends ActionBarActivity
                     .findFragmentById(R.id.item_list))
                     .setActivateOnItemClick(true);
         }
-
+        //ContentLoader.getData(this);
     }
     
     @Override
@@ -82,13 +77,13 @@ public class ItemListActivity extends ActionBarActivity
      * indicating that the item with the given ID was selected.
      */
     @Override
-    public void onItemSelected(String id) {
+    public void onItemSelected(Long id) {
         if (mTwoPane) {
             // In two-pane mode, show the detail view in this activity by
             // adding or replacing the detail fragment using a
             // fragment transaction.
             Bundle arguments = new Bundle();
-            arguments.putString(ItemDetailFragment.ARG_ITEM_ID, id);
+            arguments.putLong(ItemDetailFragment.ARG_ITEM_ID, id);
             ItemDetailFragment fragment = new ItemDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
@@ -103,8 +98,7 @@ public class ItemListActivity extends ActionBarActivity
             startActivity(detailIntent);
         }
     }
-    
-    
+        
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();

@@ -6,6 +6,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,8 +15,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-
-import com.rogerang.sampleapp.content.DummyContent;
+import com.rogerang.sampleapp.content.Venue;
+import com.rogerang.sampleapp.content.VenueLoader;
 
 /**
  * A list fragment representing a list of Items. This fragment
@@ -25,7 +27,7 @@ import com.rogerang.sampleapp.content.DummyContent;
  * Activities containing this fragment MUST implement the {@link Callbacks}
  * interface.
  */
-public class ItemListFragment extends ListFragment {
+public class ItemListFragment extends ListFragment implements LoaderManager.LoaderCallbacks<List<Venue>> {
 
     /**
      * The serialization (saved instance state) Bundle key representing the
@@ -53,34 +55,49 @@ public class ItemListFragment extends ListFragment {
         /**
          * Callback for when an item has been selected.
          */
-        public void onItemSelected(String id);
+        public void onItemSelected(Long id);
     }
 
-    // TODO replace with real items
-    private class VenueAdapter extends ArrayAdapter<DummyContent.DummyItem> {
-    	private Context context;
-    	public VenueAdapter(Context mContext, List<DummyContent.DummyItem> venueData) {
-    		super(mContext, R.layout.venue_list_entry, venueData);
-    		context = mContext;
+    public class VenueAdapter extends ArrayAdapter<Venue> {
+    	private final LayoutInflater mInflater;
+
+    	
+       	public VenueAdapter(Context context) {
+    		super(context, R.layout.venue_list_entry);
+    		 mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+       	}
+    	
+    	public VenueAdapter(Context context, List<Venue> venueData) {
+    		super(context, R.layout.venue_list_entry, venueData);
+    		 mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     	}
+    	
+
+        public void setData(List<Venue> data) {
+            clear();
+            if (data != null) {
+                addAll(data);
+            }
+        }
+
 
     	public View getView(int position, View convertView, ViewGroup parent) {
     		// Inflate a view template
     		if (convertView == null) {
-    			LayoutInflater layoutInflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-    			convertView = layoutInflater.inflate(R.layout.venue_list_entry, parent, false);
+    			convertView = mInflater.inflate(R.layout.venue_list_entry, parent, false);
     		}
     		TextView tvName = (TextView) convertView.findViewById(R.id.venueNameText);
     		TextView tvAddress = (TextView) convertView.findViewById(R.id.venueAddressText);
 
-    		 // TODO replace with real data
-    		DummyContent.DummyItem venue = getItem(position);
-    		tvName.setText(venue.toString());
-    		tvAddress.setText(venue.toString());
+    		Venue venue = getItem(position);
+    		tvName.setText(venue.getName());
+    		tvAddress.setText(venue.getAddress());
     		
     		return convertView;
     	}
     }
+    
+    private VenueAdapter mAdapter;
     
     /**
      * A dummy implementation of the {@link Callbacks} interface that does
@@ -88,7 +105,7 @@ public class ItemListFragment extends ListFragment {
      */
     private static Callbacks sDummyCallbacks = new Callbacks() {
         @Override
-        public void onItemSelected(String id) {
+        public void onItemSelected(Long id) {
         }
     };
 
@@ -103,13 +120,26 @@ public class ItemListFragment extends ListFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // TODO: replace with a real list adapter.
-/*        setListAdapter(new ArrayAdapter<DummyContent.DummyItem>(
-                getActivity(),
-                android.R.layout.simple_list_item_activated_1,
-                android.R.id.text1,
-                DummyContent.ITEMS));*/
-        setListAdapter(new VenueAdapter(getActivity(), DummyContent.ITEMS));              
+        // VenueAdapter adapter = new VenueAdapter(getActivity(), ContentLoader.ITEMS);
+        // ContentLoader.setBaseAdapter(adapter);
+        // setListAdapter(adapter);              
+    }
+    
+    @Override 
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        
+        // Create an empty adapter we will use to display the loaded data.
+        mAdapter = new VenueAdapter(getActivity());
+        setListAdapter(mAdapter);
+ 
+        // Start out with a progress indicator.
+        setListShown(false);
+
+        // Prepare the loader.  Either re-connect with an existing one,
+        // or start a new one.
+        getLoaderManager().initLoader(0, null, this);
+
     }
 
     @Override
@@ -149,7 +179,8 @@ public class ItemListFragment extends ListFragment {
 
         // Notify the active callbacks interface (the activity, if the
         // fragment is attached to one) that an item has been selected.
-        mCallbacks.onItemSelected(DummyContent.ITEMS.get(position).id);
+        //mCallbacks.onItemSelected(ContentLoader.ITEMS.get(position).getId());
+        mCallbacks.onItemSelected(mAdapter.getItem(position).getId());
     }
 
     @Override
@@ -181,5 +212,30 @@ public class ItemListFragment extends ListFragment {
         }
 
         mActivatedPosition = position;
+    }
+    
+    @Override 
+    public Loader<List<Venue>> onCreateLoader(int id, Bundle args) {
+        // This is called when a new Loader needs to be created.  This
+        // sample only has one Loader with no arguments, so it is simple.
+        return new VenueLoader(getActivity());
+    }
+
+    @Override 
+    public void onLoadFinished(Loader<List<Venue>> loader, List<Venue> data) {
+        // Set the new data in the adapter.
+        mAdapter.setData(data);
+
+        // The list should now be shown.
+        if (isResumed()) {
+            setListShown(true);
+        } else {
+            setListShownNoAnimation(true);
+        }
+    }
+
+    @Override public void onLoaderReset(Loader<List<Venue>> loader) {
+        // Clear the data in the adapter.
+        mAdapter.setData(null);
     }
 }

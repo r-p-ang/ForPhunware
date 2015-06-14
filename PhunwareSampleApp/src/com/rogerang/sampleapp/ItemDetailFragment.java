@@ -8,7 +8,8 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 
-import com.rogerang.sampleapp.content.DummyContent;
+import com.rogerang.sampleapp.content.Venue;
+import com.rogerang.sampleapp.content.VenueLoader;
 
 /**
  * A fragment representing a single Item detail screen.
@@ -24,9 +25,9 @@ public class ItemDetailFragment extends Fragment {
     public static final String ARG_ITEM_ID = "item_id";
 
     /**
-     * The dummy content this fragment is presenting.
+     * The content this fragment is presenting.
      */
-    private DummyContent.DummyItem mItem;
+    private Venue mItem;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -43,7 +44,7 @@ public class ItemDetailFragment extends Fragment {
             // Load the dummy content specified by the fragment
             // arguments. In a real-world scenario, use a Loader
             // to load content from a content provider.
-            mItem = DummyContent.ITEM_MAP.get(getArguments().getString(ARG_ITEM_ID));
+            mItem = VenueLoader.ITEM_MAP.get(getArguments().getLong(ARG_ITEM_ID));
         }
     }
 
@@ -53,10 +54,15 @@ public class ItemDetailFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_item_detail, container, false);
 
         // Show the dummy content as text in a TextView.
-        if (mItem != null) {
-            // TODO add real venue data
-            ((TextView) rootView.findViewById(R.id.venueDetailNameText)).setText(mItem.content);
-            ((TextView) rootView.findViewById(R.id.venueDetailAddressText)).setText(mItem.content);
+        if (mItem != null) {          
+        	String imgUrl = mItem.getImageUrl();
+   
+        	// TODO get image
+        	
+            ((TextView) rootView.findViewById(R.id.venueDetailNameText)).setText(mItem.getName());
+            ((TextView) rootView.findViewById(R.id.venueDetailAddressText)).setText(mItem.getAddress());
+            // TODO populate schedule list
+            
         }
 
         return rootView;
