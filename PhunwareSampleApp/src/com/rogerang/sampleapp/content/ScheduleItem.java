@@ -81,5 +81,4 @@ public class ScheduleItem {
 		String s = getStartDateString() + getEndDateString();
 		return s.hashCode();
 	}
-
 }

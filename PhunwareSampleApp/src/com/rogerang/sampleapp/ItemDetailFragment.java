@@ -6,18 +6,25 @@ import java.util.List;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Matrix;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import com.rogerang.sampleapp.content.ScheduleItem;
 import com.rogerang.sampleapp.content.Venue;
 import com.rogerang.sampleapp.content.VenueLoader;
+import com.rogerang.sampleapp.content.VenueImageLoader;
 
 /**
  * A fragment representing a single Venue detail screen.
@@ -26,7 +33,7 @@ import com.rogerang.sampleapp.content.VenueLoader;
  * on handsets.
  * 
  */
-public class ItemDetailFragment extends Fragment {
+public class ItemDetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Bitmap> {
     /**
      * The fragment argument representing the item ID that this fragment
      * represents.
@@ -38,6 +45,10 @@ public class ItemDetailFragment extends Fragment {
      */
     private Venue mItem;
 
+    // venue image
+    private ImageView mImageView;
+    private View noImageView;
+    
     /**
      * Custom list adapter for ScheduleItems.
      * @author Roger
@@ -94,6 +105,7 @@ public class ItemDetailFragment extends Fragment {
 
         if (getArguments().containsKey(ARG_ITEM_ID)) {
             // Load the content specified by the fragment arguments.
+        	// TODO should use different storage (cache?)
             mItem = VenueLoader.ITEM_MAP.get(getArguments().getLong(ARG_ITEM_ID));            
         }
     }
@@ -104,10 +116,9 @@ public class ItemDetailFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_item_detail, container, false);
 
         // Show the content 
-        if (mItem != null) {          
-        	String imgUrl = mItem.getImageUrl();
-   
-        	// TODO get and load image
+        if (mItem != null) {            
+        	mImageView = (ImageView) rootView.findViewById(R.id.imageView1);        	
+        	noImageView = rootView.findViewById(R.id.noImageText);     
         	
             ((TextView) rootView.findViewById(R.id.venueDetailNameText)).setText(mItem.getName());
             ((TextView) rootView.findViewById(R.id.venueDetailAddressText)).setText(mItem.getAddress());
@@ -121,6 +132,21 @@ public class ItemDetailFragment extends Fragment {
         }
 
         return rootView;
+    }
+    
+    
+    @Override 
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        
+        // load image 
+        if (mItem != null) {          
+        	if (mItem.getImageUrl() != null) {
+                // Prepare the loader.  Either re-connect with an existing one,
+                // or start a new one.
+                getLoaderManager().initLoader(0, null, this);
+        	}
+        } 
     }
     
     public void shareVenue() {
@@ -143,4 +169,54 @@ public class ItemDetailFragment extends Fragment {
     	    }    		
     	}
     }
+
+	@Override
+	public Loader<Bitmap> onCreateLoader(int id, Bundle args) {		
+		DisplayMetrics metrics = new DisplayMetrics();
+		getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
+		return new VenueImageLoader(getActivity(), mItem.getImageUrl(), metrics.widthPixels, metrics.heightPixels); 
+	}
+	
+	private Bitmap scaleDownBitmap(Bitmap bitmap, int reqWidth, int reqHeight) {
+		if (reqWidth <= 0 || reqHeight <= 0) {
+			return bitmap;
+		}
+		
+	    // scale down to fit within requested dimensions
+	    int width = bitmap.getWidth();
+	    int height = bitmap.getHeight();
+	    if (reqWidth < width ||  reqHeight < height) { 	    		 
+	    	float xScale = ((float) reqWidth) / width;
+	    	float yScale = ((float) reqHeight) / height;
+	    	float scale = (xScale <= yScale) ? xScale : yScale;
+
+	    	// Create a matrix for the scaling and add the scaling data
+	    	Matrix matrix = new Matrix();
+	    	matrix.postScale(scale, scale);
+
+	    	// Create a new bitmap 
+	    	return Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, true);
+	    } else {
+	    	return bitmap;  // no scaling needed
+	    }
+	}
+
+	@Override
+	public void onLoadFinished(Loader<Bitmap> loader, Bitmap data) {
+		if (data != null) {
+			// scale bitmap because ImageView doesn't properly resize with scaling options
+			// TODO this is still buggy, the view sometimes still have no dimensions at this point
+			int width = noImageView.getWidth() != 0 ? noImageView.getWidth() : mImageView.getWidth();						
+			Bitmap scaledBitmap = scaleDownBitmap(data, width, data.getHeight());
+			noImageView.setVisibility(View.GONE);
+			mImageView.setImageBitmap(scaledBitmap);
+			mImageView.setVisibility(View.VISIBLE);
+		}
+	}
+
+	@Override
+	public void onLoaderReset(Loader<Bitmap> loader) {
+		mImageView.setVisibility(View.GONE);
+		noImageView.setVisibility(View.VISIBLE);
+	}
 }
