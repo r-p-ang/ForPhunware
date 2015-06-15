@@ -206,7 +206,7 @@ public class ItemDetailFragment extends Fragment implements LoaderManager.Loader
 		if (data != null) {
 			// scale bitmap because ImageView doesn't properly resize with scaling options
 			// TODO this is still buggy, the view sometimes still have no dimensions at this point
-			int width = noImageView.getWidth() != 0 ? noImageView.getWidth() : mImageView.getWidth();						
+			int width = mImageView.getWidth() != 0 ? mImageView.getWidth() : noImageView.getWidth();						
 			Bitmap scaledBitmap = scaleDownBitmap(data, width, data.getHeight());
 			noImageView.setVisibility(View.GONE);
 			mImageView.setImageBitmap(scaledBitmap);

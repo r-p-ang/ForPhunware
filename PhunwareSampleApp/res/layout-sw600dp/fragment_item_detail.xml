@@ -16,7 +16,7 @@
             android:id="@+id/imageView1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-              android:scaleType="fitCenter" />
+              android:scaleType="fitStart" />
 
         <TextView
             android:id="@+id/noImageText"

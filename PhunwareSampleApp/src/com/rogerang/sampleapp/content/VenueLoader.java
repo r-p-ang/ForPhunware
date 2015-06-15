@@ -3,6 +3,8 @@ package com.rogerang.sampleapp.content;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -57,13 +59,15 @@ public class VenueLoader extends AsyncTaskLoader<List<Venue>> {
     
 	@Override
 	public List<Venue> loadInBackground() {
+		HttpURLConnection urlConnection = null;
 		InputStream inputStream = null;
 		List<Venue> newData = null;
 		
 		try {
-			// TODO get from URL			
-			// TEMP load from file to debug JSON parsing
-			inputStream = mContext.getAssets().open("test.json");
+			URL mURL = new URL("https://s3.amazonaws.com/jon-hancock-phunware/nflapi-static.json");
+			
+			urlConnection= (HttpURLConnection) mURL.openConnection();
+            inputStream = urlConnection.getInputStream();            
 			InputStreamReader reader = new InputStreamReader(inputStream, "UTF-8");
 			Type venueType = new TypeToken<List<Venue>>() {}.getType();            
 			GsonBuilder gsonBuilder = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
@@ -76,6 +80,8 @@ public class VenueLoader extends AsyncTaskLoader<List<Venue>> {
 			try {
 				if (inputStream != null) 
 					inputStream.close();
+				if (urlConnection != null)
+					urlConnection.disconnect();
 			} catch (Exception squish) {
 				squish.printStackTrace();
 			}

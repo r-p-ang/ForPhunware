@@ -1,7 +1,10 @@
 package com.rogerang.sampleapp.content;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -14,9 +17,11 @@ import android.support.v4.content.AsyncTaskLoader;
  */
 public class VenueImageLoader extends AsyncTaskLoader<Bitmap> {
 	private Context mContext;
-	private String URL;
+	private String urlStr;
 	private int reqWidth;
 	private int reqHeight;
+	
+	private static final String FILENAME = "dl_bitmap"; // temp. download file name
 	
 	/**
 	 * New venue image loader.
@@ -28,18 +33,34 @@ public class VenueImageLoader extends AsyncTaskLoader<Bitmap> {
 	public VenueImageLoader(Context context, String URL, int width, int height) {
 		super(context);
 		mContext = context;
-		this.URL = URL;
+		this.urlStr = URL;
 		this.reqHeight = height;
 		this.reqWidth = width;
 	}
 
 	@Override
-	public Bitmap loadInBackground() {		
+	public Bitmap loadInBackground() {	
+		HttpURLConnection urlConnection = null;
 		InputStream inputStream = null;
-		try {
-			// TODO get from URL
-			inputStream = mContext.getAssets().open("lorempixel.com.jpg");
+		FileOutputStream fos = null;
 
+		try {
+			URL mURL = new URL(urlStr);
+			
+			// download to local file 
+			urlConnection= (HttpURLConnection) mURL.openConnection();
+            inputStream = urlConnection.getInputStream();
+            fos = mContext.openFileOutput(FILENAME, Context.MODE_PRIVATE);
+            
+            byte data[] = new byte[4096];
+            int count;
+            while ((count = inputStream.read(data)) != -1) {
+            	fos.write(data, 0, count);
+            }
+            inputStream.close();
+            fos.close();
+		
+			inputStream = mContext.openFileInput(FILENAME);
 		
 			BitmapFactory.Options options = new BitmapFactory.Options();
 			options.inJustDecodeBounds = true;
@@ -47,7 +68,10 @@ public class VenueImageLoader extends AsyncTaskLoader<Bitmap> {
 			int imageHeight = options.outHeight;
 			int imageWidth = options.outWidth;
 			
-			if (imageHeight <= reqHeight && imageWidth <= reqHeight) {
+			// restart file
+			inputStream.close();
+			inputStream = mContext.openFileInput(FILENAME);
+			if (imageHeight <= reqHeight && imageWidth <= reqWidth) {
 				options.inJustDecodeBounds = false;
 				return BitmapFactory.decodeStream(inputStream, null, options);
 			} else {
@@ -56,6 +80,17 @@ public class VenueImageLoader extends AsyncTaskLoader<Bitmap> {
 
 		} catch (IOException e) {
 			e.printStackTrace();
+	     } finally {
+             try {
+                 if (inputStream != null) 
+                	 inputStream.close();
+                 if (fos != null) 
+                	 fos.close();
+                 if (urlConnection != null)
+                	 urlConnection.disconnect();
+             } catch (Exception e) {
+            	 e.printStackTrace();
+             }
 		}
 		return null;
 	}
@@ -91,8 +126,9 @@ public class VenueImageLoader extends AsyncTaskLoader<Bitmap> {
 	 * Decode bitmap for input stream.  Tries to decode a scaled down version into memory.  
 	 * @param is inputstream for bitmap
 	 * @return bitmap both dimensions will be equal to or less than requested dimensions.
+	 * @throws IOException 
 	 */
-	private Bitmap decodeSampledBitmap(InputStream is) {
+	private Bitmap decodeSampledBitmap(InputStream is) throws IOException {
 		// First decode with inJustDecodeBounds=true to check dimensions
 		final BitmapFactory.Options options = new BitmapFactory.Options();
 		options.inJustDecodeBounds = true;
@@ -101,6 +137,10 @@ public class VenueImageLoader extends AsyncTaskLoader<Bitmap> {
 	    // Calculate inSampleSize
 	    options.inSampleSize = calculateInSampleSize(options);
 
+		// restart file
+	    is.close();
+	    is = mContext.openFileInput(FILENAME);
+	    
 	    // Decode bitmap with inSampleSize set
 	    options.inJustDecodeBounds = false;
 	    Bitmap bitmap = BitmapFactory.decodeStream(is, null, options);	     
